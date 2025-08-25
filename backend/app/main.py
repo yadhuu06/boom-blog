@@ -1,22 +1,39 @@
 from fastapi import FastAPI
-from app.api.api import api_router  # Absolute import for central API router
+from fastapi.middleware.cors import CORSMiddleware
+from app.api.api import api_router
+from app.core.config import settings
 
-# ---------------- FastAPI App Initialization ---------------- #
 app = FastAPI(
-    title="Boom-Blog CMS API",
+    title=settings.PROJECT_NAME,
     version="1.0.0",
-    description="A clean, modular FastAPI backend for Boom-Blog CMS"
+    description="Backend Boom Box",
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
-# ---------------- Include API Router ---------------- #
-# Centralized router handling all endpoints
-app.include_router(api_router)
+# CORS Middleware
+origins = [
+    "http://localhost:5173",  
+    "http://127.0.0.1:5173",  
+    "http://localhost:3000",  
+    "http://127.0.0.1:3000",
+]
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# ---------------- Root Endpoint ---------------- #
+# Include API Router
+app.include_router(api_router, prefix="/api")
+
 @app.get("/", tags=["Root"])
-def root():
-    """
-    Root endpoint for health check or welcome message.
-    """
-    return {"message": "Welcome to Boom-Blog CMS API"}
+async def root():
+    return {
+        "message": f"Welcome to {settings.PROJECT_NAME} API",
+        "version": "1.0.0",
+        "status": "running"
+    }

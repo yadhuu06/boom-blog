@@ -1,3 +1,4 @@
+# config.py
 import os
 from pydantic_settings import BaseSettings
 
@@ -11,7 +12,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     ALGORITHM: str = "HS256"
 
-    # Add your extra env keys
+    
     ENVIRONMENT: str = "development"
     DB_SCHEMA: str = "boom_blog"
 

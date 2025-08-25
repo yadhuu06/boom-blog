@@ -1,8 +1,9 @@
 from sqlalchemy import Column, Integer, String, Boolean
-from app.core.database import Base
-
+from app.db.database import Base
+from sqlalchemy.orm import relationship
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {"schema": "boom_blog"}
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
@@ -10,3 +11,5 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
+
+    posts = relationship("Post", back_populates="author")
