@@ -35,3 +35,4 @@ def delete_existing_user(user_id: int, db: Session = Depends(get_db), current_us
         raise HTTPException(status_code=404, detail="User not found")
     delete_user(db, user)
     return None
+
