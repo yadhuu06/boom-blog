@@ -14,6 +14,7 @@ pydantic==2.10.6
 pydantic-core==2.27.2
 pydantic-extra-types==2.10.5
 pydantic-settings==2.8.1
+passlib[bcrypt]
 PyJWT==1.7.1
 sqlalchemy==2.0.43
 uvicorn==0.33.0
