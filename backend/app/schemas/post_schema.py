@@ -1,4 +1,3 @@
-
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -29,6 +28,7 @@ class PostResponse(PostBase):
     view_count: int 
     like_count: int 
     is_liked: Optional[bool] = None
+    is_viewed: Optional[bool] = None
     author: UserResponse
 
     class Config:

@@ -30,9 +30,14 @@ def update_existing_user(user_id: int, updates: UserUpdate, db: Session = Depend
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_existing_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    user = get_user_by_id(db, user_id)
+
+    user = get_user_by_id(db, user_id) 
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    delete_user(db, user)
+
+    user.is_active = False
+    db.commit() 
+
     return None
+
 

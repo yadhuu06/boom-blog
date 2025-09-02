@@ -16,7 +16,9 @@ def login_or_register(request: LoginRequest, db: Session = Depends(get_db)):
     user = get_user_by_email(db, request.email)
 
     if user:
-        # Login flow
+        if not user.is_active:
+            raise HTTPException(status_code=403, detail="User account is blocked")
+
         if not verify_password(request.password, user.hashed_password):
             raise HTTPException(status_code=400, detail="Invalid password")
     else:
