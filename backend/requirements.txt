@@ -1,7 +1,7 @@
 alembic==1.14.1
 annotated-types==0.7.0
 anyio==4.5.2
-bcrypt==3.1.7
+bcrypt==4.2.0
 email-validator==2.2.0
 fastapi==0.116.1
 httpx==0.28.1
@@ -14,13 +14,12 @@ pydantic==2.10.6
 pydantic-core==2.27.2
 pydantic-extra-types==2.10.5
 pydantic-settings==2.8.1
-passlib[bcrypt]
-PyJWT==1.7.1
+passlib[bcrypt]==1.7.4
+PyJWT==2.10.1         
 sqlalchemy==2.0.43
 uvicorn==0.33.0
 uvloop==0.21.0
 watchfiles==0.24.0
-requests==2.22.0
-urllib3<2
+requests==2.32.3       
+urllib3==2.2.3         
 cloudinary==1.28.1
-
