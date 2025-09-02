@@ -21,4 +21,6 @@ uvicorn==0.33.0
 uvloop==0.21.0
 watchfiles==0.24.0
 requests==2.22.0
-cloudinary
+urllib3<2
+cloudinary==1.28.1
+
