@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { getPostById, incrementView, toggleLike, deletePost } from '../../../api/postApi';
+import { getPostById, toggleLike, deletePost } from '../../../api/postApi';
 import { getCommentsForPost, addComment, updateComment, deleteComment } from '../../../api/commentApi';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Heart, Edit2, Trash2, Send, User, MessageCircle } from 'lucide-react';
+import { Heart, Edit2, Trash2, Send, User, MessageCircle, Eye, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const PostDetailPage = () => {
@@ -15,6 +15,8 @@ const PostDetailPage = () => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedContent, setEditedContent] = useState('');
   const [showComments, setShowComments] = useState(false);
+  const [commentPage, setCommentPage] = useState(1);
+  const commentsPerPage = 5;
   const { token, user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
@@ -22,39 +24,28 @@ const PostDetailPage = () => {
     const fetchData = async () => {
       try {
         toast.loading('Loading post...', { id: 'fetch-data' });
-        const postData = await getPostById(id);
+        const viewedPosts = JSON.parse(localStorage.getItem('viewedPosts')) || [];
+        const postData = await getPostById(id, token);
         setPost(postData);
-        const commentsData = await getCommentsForPost(id);
-        setComments(commentsData);
+        setComments(await getCommentsForPost(id));
+        if (!viewedPosts.includes(id)) {
+          localStorage.setItem('viewedPosts', JSON.stringify([...viewedPosts, id]));
+        }
         toast.dismiss('fetch-data');
       } catch (err) {
         toast.error('Failed to load post.', { id: 'fetch-data' });
       }
     };
 
-    const handleViewIncrement = async () => {
-      if (token) {
-        const viewedPosts = JSON.parse(localStorage.getItem('viewedPosts')) || [];
-        if (!viewedPosts.includes(id)) {
-          try {
-            const newViews = await incrementView(id, token);
-            setPost((prev) => (prev ? { ...prev, views: newViews } : prev));
-            localStorage.setItem('viewedPosts', JSON.stringify([...viewedPosts, id]));
-          } catch (err) {}
-        }
-      }
-    };
-
     fetchData();
-    handleViewIncrement();
   }, [id, token]);
 
   const handleLike = async () => {
     try {
-      toast.loading(post?.is_liked ? 'Unliking...' : 'Liking...', { id: 'like-post' });
-      const newLikes = await toggleLike(id, token);
-      setPost((prev) => (prev ? { ...prev, likes: newLikes, is_liked: !prev.is_liked } : prev));
-      toast.success(post?.is_liked ? 'Unliked!' : 'Liked!', { id: 'like-post' });
+      toast.loading(post.is_liked ? 'Unliking...' : 'Liking...', { id: 'like-post' });
+      const { like_count, is_liked } = await toggleLike(id, token);
+      setPost((prev) => prev ? { ...prev, like_count, is_liked } : prev);
+      toast.success(post.is_liked ? 'Unliked!' : 'Liked!', { id: 'like-post' });
     } catch (err) {
       toast.error('Failed to toggle like.', { id: 'like-post' });
     }
@@ -82,7 +73,7 @@ const PostDetailPage = () => {
       const added = await addComment(id, newComment, token);
       setComments([...comments, added]);
       setNewComment('');
-      setShowComments(true); // Show comments after adding a new one
+      setShowComments(true);
       toast.success('Comment posted!', { id: 'add-comment' });
     } catch (err) {
       toast.error('Failed to post comment.', { id: 'add-comment' });
@@ -122,222 +113,306 @@ const PostDetailPage = () => {
     }
   };
 
+  const loadMoreComments = () => {
+    setCommentPage((prev) => prev + 1);
+  };
+
   if (!post) return (
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }} 
-      transition={{ duration: 1 }}
-      className="min-h-screen bg-gradient-to-br from-gray-900 to-black flex items-center justify-center text-cyan-300 text-xl animate-pulse"
+      transition={{ duration: 0.8 }}
+      className="min-h-screen bg-gradient-to-br from-gray-900 to-cyan-900 flex items-center justify-center text-cyan-300 text-lg animate-pulse pt-16"
     >
       Loading...
     </motion.div>
   );
 
   const isAuthor = user && post.author_id === user.id;
+  const displayedComments = comments.slice(0, commentPage * commentsPerPage);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <motion.div 
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
-          <h1 className="text-4xl font-extrabold text-cyan-300 mb-4 break-words">{post.title}</h1>
-        </motion.div>
-        <motion.div 
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="flex items-center justify-between text-gray-400 mb-6"
-        >
-          <div className="flex items-center">
-            <User className="w-5 h-5 mr-2 text-cyan-400" />
-            <span className="truncate max-w-[200px]">{post.author.username} · {new Date(post.created_at).toLocaleDateString()}</span>
-          </div>
-          <span>Views: {post.views}  Likes: {post.likes?.like_count ?? 0}</span>
-        </motion.div>
-        {post.image_url && (
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            <img src={post.image_url} alt="Post" className="w-full rounded-lg mb-6 object-cover max-h-96" />
-          </motion.div>
-        )}
-        <motion.p 
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="text-gray-300 text-lg mb-8 break-words"
-        >
-          {post.content}
-        </motion.p>
-
-        <motion.div 
-          initial={{ x: -50, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="flex space-x-4 mb-8"
-        >
-          {token && (
-            <motion.button
-              onClick={handleLike}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`flex items-center px-4 py-2 rounded-full text-white transition-all duration-300 ${
-                post.is_liked ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-gray-700 hover:bg-gray-600'
-              }`}
-            >
-              <Heart className="w-5 h-5 mr-2" />
-              <button
-  className={`flex items-center px-4 py-2 rounded-full text-white transition-all duration-300 ${
-    post.likes?.is_liked ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-gray-700 hover:bg-gray-600'
-  }`}
->
-  <Heart className="w-5 h-5 mr-2" />
-  <span>{post.likes?.like_count ?? 0}</span>
-</button>
-
-              
-
-
-            </motion.button>
-          )}
-          {isAuthor && (
-            <>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link
-                  to={`/posts/${id}/edit`}
-                  className="flex items-center px-4 py-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-all duration-300"
-                >
-                  <Edit2 className="w-5 h-5 mr-2" />
-                  Edit
-                </Link>
-              </motion.div>
-              <motion.button
-                onClick={handleDeletePost}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center px-4 py-2 rounded-full bg-gray-700 text-white hover:bg-gray-600 transition-all duration-300"
-              >
-                <Trash2 className="w-5 h-5 mr-2" />
-                Delete
-              </motion.button>
-            </>
-          )}
-        </motion.div>
-
-        <motion.div 
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
-          <button
-            onClick={() => setShowComments(!showComments)}
-            className="flex items-center px-4 py-2 rounded-full bg-cyan-600 text-white hover:bg-cyan-700 transition-all duration-300 mb-6"
-          >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            {showComments ? 'Hide Comments' : `Show Comments (${comments.length})`}
-          </button>
-        </motion.div>
-
-        {showComments && (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-cyan-900 pt-16 pb-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-gray-800/60 backdrop-blur-md rounded-xl shadow-2xl border border-cyan-500/20 overflow-hidden">
+          
+          {/* Post Header */}
           <motion.div
-            initial={{ y: 50, opacity: 0 }}
+            initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="p-4 sm:p-6 border-b border-cyan-500/20"
           >
-            {comments.length === 0 ? (
-              <p className="text-gray-400 mb-6">No comments yet.</p>
-            ) : (
-              <div className="space-y-6 mb-8">
-                {comments.map((comment, index) => (
-                  <motion.div
-                    key={comment.id}
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 1, delay: Math.min(index * 0.1, 1) }}
-                    className="bg-gray-800 p-6 rounded-lg border border-cyan-500/20"
-                  >
-                    {editingCommentId === comment.id ? (
-                      <div className="space-y-4">
-                        <textarea
-                          value={editedContent}
-                          onChange={(e) => setEditedContent(e.target.value)}
-                          className="w-full p-4 rounded-lg bg-gray-900 text-white border border-cyan-500/20 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500 transition-all duration-300 h-24 resize-y"
-                          required
-                        />
-                        <div className="flex space-x-3">
-                          <motion.button
-                            onClick={() => handleUpdate(comment.id)}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="px-4 py-2 rounded-full bg-cyan-600 text-white hover:bg-cyan-700 transition-all duration-300"
-                          >
-                            Save
-                          </motion.button>
-                          <motion.button
-                            onClick={() => setEditingCommentId(null)}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="px-4 py-2 rounded-full bg-gray-600 text-white hover:bg-gray-500 transition-all duration-300"
-                          >
-                            Cancel
-                          </motion.button>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <p className="text-gray-300 mb-3 break-words">{comment.content}</p>
-                        <div className="flex justify-between text-gray-400 text-sm">
-                          <p className="truncate max-w-[200px]">{comment.user.username} · {new Date(comment.created_at).toLocaleDateString()}</p>
-                          {user && comment.user_id === user.id && (
-                            <div className="flex space-x-3">
-                              <button onClick={() => startEdit(comment)} className="text-cyan-400 hover:text-cyan-300 transition-colors duration-200">
-                                Edit
-                              </button>
-                              <button onClick={() => handleDeleteComment(comment.id)} className="text-red-400 hover:text-red-300 transition-colors duration-200">
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </motion.div>
-                ))}
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-cyan-300 mb-4 break-words">
+              {post.title}
+            </h1>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 text-gray-300">
+                  <User className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                  <span className="text-sm font-medium truncate max-w-[150px] sm:max-w-none">
+                    {post.author.username}
+                  </span>
+                </div>
+                <span className="text-gray-400 text-sm">
+                  {new Date(post.created_at).toLocaleDateString()}
+                </span>
               </div>
-            )}
+              
+              <div className="flex items-center space-x-4 text-sm text-gray-300">
+                <div className="flex items-center space-x-1">
+                  <Eye className="w-4 h-4 text-cyan-400" />
+                  <span>{post.view_count}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Heart className={`w-4 h-4 ${post.is_liked ? 'text-red-400 fill-current' : 'text-cyan-400'}`} />
+                  <span>{post.like_count}</span>
+                </div>
+              </div>
+            </div>
           </motion.div>
-        )}
 
-        {token && (
-          <motion.form 
-            onSubmit={handleAddComment} 
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1 }}
-            className="flex space-x-3"
-          >
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="Add a comment..."
-              className="flex-1 p-4 rounded-lg bg-gray-900 text-white border border-cyan-500/20 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500 transition-all duration-300 h-20 resize-y"
-              required
-            />
-            <motion.button
-              type="submit"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-4 rounded-full bg-cyan-600 text-white hover:bg-cyan-700 transition-all duration-300"
+          {/* Post Image */}
+          {post.image_url && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="relative"
             >
-              <Send className="w-6 h-6" />
-            </motion.button>
-          </motion.form>
-        )}
+              <img 
+                src={post.image_url} 
+                alt="Post" 
+                className="w-full object-cover max-h-96 sm:max-h-[500px]" 
+              />
+            </motion.div>
+          )}
+
+          {/* Post Content */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="p-4 sm:p-6"
+          >
+            <p className="text-gray-200 text-base sm:text-lg leading-relaxed whitespace-pre-wrap break-words">
+              {post.content}
+            </p>
+          </motion.div>
+
+          {/* Action Bar */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="px-4 sm:px-6 py-4 border-t border-cyan-500/20 bg-gray-900/30"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {token && (
+                  <motion.button
+                    onClick={handleLike}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-full border transition-all duration-200 ${
+                      post.is_liked 
+                        ? 'bg-red-500/20 border-red-400 text-red-400' 
+                        : 'bg-gray-700/50 border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10'
+                    }`}
+                  >
+                    <Heart className={`w-5 h-5 ${post.is_liked ? 'fill-current' : ''}`} />
+                    <span className="text-sm font-medium hidden sm:inline">
+                      {post.is_liked ? 'Liked' : 'Like'}
+                    </span>
+                  </motion.button>
+                )}
+                
+                <motion.button
+                  onClick={() => setShowComments(!showComments)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-full bg-gray-700/50 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-all duration-200 relative"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span className="text-sm font-medium hidden sm:inline">Comments</span>
+                  {comments.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-cyan-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                      {comments.length}
+                    </span>
+                  )}
+                </motion.button>
+              </div>
+              
+              {isAuthor && (
+                <div className="flex items-center space-x-2">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link
+                      to={`/posts/${id}/edit`}
+                      className="flex items-center space-x-2 px-4 py-2 rounded-full bg-blue-600/20 border border-blue-400 text-blue-400 hover:bg-blue-500/20 transition-all duration-200"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      <span className="text-sm font-medium hidden sm:inline">Edit</span>
+                    </Link>
+                  </motion.div>
+                  
+                  <motion.button
+                    onClick={handleDeletePost}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-full bg-red-600/20 border border-red-400 text-red-400 hover:bg-red-500/20 transition-all duration-200"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span className="text-sm font-medium hidden sm:inline">Delete</span>
+                  </motion.button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Comments Section */}
+          {showComments && (
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5, ease: 'easeOut' }}
+              className="border-t border-cyan-500/20 bg-gray-900/20"
+            >
+              <div className="p-4 sm:p-6">
+                <h3 className="text-lg font-semibold text-cyan-300 mb-4">
+                  Comments ({comments.length})
+                </h3>
+                
+                {displayedComments.length === 0 ? (
+                  <p className="text-gray-400 text-center py-8">
+                    No comments yet. Be the first to comment!
+                  </p>
+                ) : (
+                  <div className="space-y-4 mb-6">
+                    {displayedComments.map((comment, index) => (
+                      <motion.div
+                        key={comment.id}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: Math.min(index * 0.1, 0.5), ease: 'easeOut' }}
+                        className="bg-gray-800/50 backdrop-blur-sm p-4 rounded-lg border border-cyan-500/10"
+                      >
+                        {editingCommentId === comment.id ? (
+                          <div className="space-y-3">
+                            <textarea
+                              value={editedContent}
+                              onChange={(e) => setEditedContent(e.target.value)}
+                              className="w-full p-3 rounded-lg bg-gray-700 text-white border border-cyan-500/30 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 resize-none min-h-[100px]"
+                              placeholder="Edit your comment..."
+                              required
+                            />
+                            <div className="flex items-center space-x-2">
+                              <motion.button
+                                onClick={() => handleUpdate(comment.id)}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white transition-all duration-200"
+                              >
+                                <Send className="w-4 h-4" />
+                                <span className="text-sm">Update</span>
+                              </motion.button>
+                              <motion.button
+                                onClick={() => setEditingCommentId(null)}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-500 text-white transition-all duration-200"
+                              >
+                                <X className="w-4 h-4" />
+                                <span className="text-sm">Cancel</span>
+                              </motion.button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <p className="text-gray-200 text-sm sm:text-base leading-relaxed whitespace-pre-wrap break-words mb-3">
+                              {comment.content}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2 text-gray-400 text-xs sm:text-sm">
+                                <span className="font-medium text-cyan-400">
+                                  {comment.user.username}
+                                </span>
+                                <span>•</span>
+                                <span>{new Date(comment.created_at).toLocaleDateString()}</span>
+                              </div>
+                              
+                              {user && comment.user_id === user.id && (
+                                <div className="flex items-center space-x-2">
+                                  <motion.button
+                                    onClick={() => startEdit(comment)}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="p-2 rounded-full text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all duration-200"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </motion.button>
+                                  <motion.button
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="p-2 rounded-full text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </motion.button>
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </motion.div>
+                    ))}
+                    
+                    {comments.length > displayedComments.length && (
+                      <motion.button
+                        onClick={loadMoreComments}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full py-3 text-cyan-400 hover:text-cyan-300 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/5 transition-all duration-200"
+                      >
+                        Load More Comments ({comments.length - displayedComments.length} remaining)
+                      </motion.button>
+                    )}
+                  </div>
+                )}
+
+                {/* Comment Form */}
+                {token && (
+                  <motion.form
+                    onSubmit={handleAddComment}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="space-y-3"
+                  >
+                    <textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="w-full p-4 rounded-lg bg-gray-700 text-white border border-cyan-500/30 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 resize-none min-h-[100px]"
+                      required
+                    />
+                    <div className="flex justify-end">
+                      <motion.button
+                        type="submit"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center space-x-2 px-6 py-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-medium transition-all duration-200"
+                      >
+                        <Send className="w-4 h-4" />
+                        <span>Post Comment</span>
+                      </motion.button>
+                    </div>
+                  </motion.form>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   );

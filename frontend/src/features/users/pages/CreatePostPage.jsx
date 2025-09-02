@@ -1,38 +1,90 @@
+
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { createPost } from '../../../api/postApi';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
+// Component for creating a new post with image cropping
 const CreatePostPage = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState(null);
+  const [imageSrc, setImageSrc] = useState(null); // Source for image preview
+  const [crop, setCrop] = useState({ unit: '%', width: 50, aspect: 16 / 9 }); // Crop settings
+  const [croppedImage, setCroppedImage] = useState(null); // Cropped image file
+  const [imageRef, setImageRef] = useState(null); // Reference to image element
   const { token } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
+  // Handle image file selection and create preview
+  const handleImageChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setImageSrc(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Perform cropping and convert to File object
+  const getCroppedImg = () => {
+    if (!imageRef || !crop.width || !crop.height) return;
+    const canvas = document.createElement('canvas');
+    const scaleX = imageRef.naturalWidth / imageRef.width;
+    const scaleY = imageRef.naturalHeight / imageRef.height;
+    canvas.width = crop.width * scaleX;
+    canvas.height = crop.height * scaleY;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(
+      imageRef,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width * scaleX,
+      crop.height * scaleY
+    );
+    // Convert canvas to File object
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], imageFile.name, { type: imageFile.type });
+        setCroppedImage(file);
+      }
+    }, imageFile.type);
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
-      toast.error('Title and content required.');
+      toast.error("Title and content required.");
       return;
     }
     if (title.length > 80) {
-      toast.error('Title max 80 characters.');
+      toast.error("Title max 80 characters.");
       return;
     }
     try {
-      toast.loading('Creating post...', { id: 'create-post' });
+      toast.loading("Creating post...", { id: "create-post" });
       const formData = new FormData();
       formData.append('title', title);
       formData.append('content', content);
-      if (imageFile) formData.append('image', imageFile);
-      await createPost(formData, token);
-      toast.success('Post created!', { id: 'create-post' });
-      navigate('/');
+      if (croppedImage) {
+        formData.append('image', croppedImage);
+      }
+      await createPost(formData);
+      toast.success("Post created!", { id: "create-post" });
+      navigate("/");
     } catch (err) {
-      toast.error('Create failed.', { id: 'create-post' });
+      console.error(err);
+      toast.error("Create failed.", { id: "create-post" });
     }
   };
 
@@ -96,9 +148,25 @@ const CreatePostPage = () => {
               id="image"
               type="file"
               accept="image/*"
-              onChange={(e) => setImageFile(e.target.files[0])}
+              onChange={handleImageChange}
               className="w-full p-4 rounded-lg bg-gray-800 text-white border border-cyan-500/20 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500 transition-all duration-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-cyan-600/50 file:text-cyan-100 file:hover:bg-cyan-600"
             />
+            {imageSrc && (
+              <div className="mt-4">
+                <ReactCrop
+                  crop={crop}
+                  onChange={setCrop}
+                  onComplete={getCroppedImg}
+                  aspect={16 / 9}
+                >
+                  <img
+                    src={imageSrc}
+                    onLoad={(e) => setImageRef(e.target)}
+                    alt="Crop preview"
+                  />
+                </ReactCrop>
+              </div>
+            )}
           </motion.div>
           <motion.button
             type="submit"

@@ -19,16 +19,22 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           {token ? (
             <>
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1 }} whileHover={{ scale: 1.05 }}>
-                <Link to="/posts/new" className="px-5 py-2 rounded-full bg-cyan-600/50 text-cyan-100 hover:bg-cyan-600 transition-all duration-300 text-sm font-semibold border border-cyan-500/30">
-                  New Post
-                </Link>
-              </motion.div>
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.2 }} whileHover={{ scale: 1.05 }}>
-                <Link to="/users" className="px-5 py-2 rounded-full bg-cyan-600/50 text-cyan-100 hover:bg-cyan-600 transition-all duration-300 text-sm font-semibold border border-cyan-500/30">
-                  Users
-                </Link>
-              </motion.div>
+          {user && !user.is_admin && (
+  <motion.div
+    initial={{ opacity: 0, x: 20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ duration: 1 }}
+    whileHover={{ scale: 1.05 }}
+  >
+    <Link
+      to="/posts/new"
+      className="px-5 py-2 rounded-full bg-cyan-600/50 text-cyan-100 hover:bg-cyan-600 transition-all duration-300 text-sm font-semibold border border-cyan-500/30"
+    >
+      New Post
+    </Link>
+  </motion.div>
+)}
+
               {user && user.is_admin && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, delay: 0.4 }} whileHover={{ scale: 1.05 }}>
                   <Link to="/admin" className="px-5 py-2 rounded-full bg-cyan-600/50 text-cyan-100 hover:bg-cyan-600 transition-all duration-300 text-sm font-semibold border border-cyan-500/30">

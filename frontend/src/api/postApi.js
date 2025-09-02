@@ -1,35 +1,50 @@
+
 import api from "./api";
 
-export const createPost = async (post) => {
-  const response = await api.post("/posts/", post);
+// Create a new post with FormData
+export const createPost = async (formData) => {
+  const response = await api.post("/posts/", formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
   return response.data;
 };
 
+// Get all posts
 export const getAllPosts = async () => {
   const response = await api.get("/posts/");
   return response.data;
 };
 
-export const getPostById = async (id) => {
-  const response = await api.get(`/posts/${id}`);
+// Get a post by ID (increments view count on backend)
+export const getPostById = async (id, token) => {
+  const response = await api.get(`/posts/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   return response.data;
 };
 
-export const updatePost = async (id, updates) => {
-  const response = await api.put(`/posts/${id}`, updates);
+// Update a post with FormData
+export const updatePost = async (id, formData, token) => {
+  const response = await api.put(`/posts/${id}`, formData, {
+    headers: { 
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Bearer ${token}`
+    }
+  });
   return response.data;
 };
 
-export const deletePost = async (id) => {
-  await api.delete(`/posts/${id}`);
+// Delete a post
+export const deletePost = async (id, token) => {
+  await api.delete(`/posts/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 };
 
-export const incrementView = async (id) => {
-  const response = await api.post(`/posts/${id}/view`);
-  return response.data;
-};
-
-export const toggleLike = async (id) => {
-  const response = await api.post(`/posts/${id}/like`);
+// Toggle like/unlike
+export const toggleLike = async (id, token) => {
+  const response = await api.post(`/posts/${id}/like`, {}, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
   return response.data;
 };
