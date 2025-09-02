@@ -15,7 +15,6 @@ from app.utils.cloudinary_service import upload_to_cloudinary
 
 router = APIRouter()
 
-# Create a new post 
 @router.post("/", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
 def create_new_post(
     title: str = Form(...),
@@ -36,7 +35,6 @@ def create_new_post(
     post = PostCreate(title=title, content=content, image_url=image_url)
     return create_post(db, post, author_id=user.id)
 
-# List all posts with pagination
 @router.get("/", response_model=List[PostResponse])
 def read_all_posts(
     skip: int = 0,
@@ -45,7 +43,7 @@ def read_all_posts(
 ):
     return get_all_posts(db, skip=skip, limit=limit)
 
-# Get a specific post by ID and increment view count
+
 @router.get("/{post_id}", response_model=PostResponse)
 def read_post(
     post_id: int,
@@ -56,7 +54,7 @@ def read_post(
     if not db_post:
         raise HTTPException(status_code=404, detail="Post not found")
     
-    # Check if user has already viewed the post
+
     existing_view = db.query(View).filter(View.user_id == user.id, View.post_id == post_id).first()
     if not existing_view:
         
@@ -68,7 +66,6 @@ def read_post(
     
     return db_post
 
-# Update an existing post
 @router.put("/{post_id}", response_model=PostResponse)
 def update_existing_post(
     post_id: int,
@@ -95,7 +92,7 @@ def update_existing_post(
     updates = PostUpdate(title=title, content=content, image_url=image_url)
     return update_post(db, db_post, updates)
 
-# Delete a post
+
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_existing_post(
     post_id: int,
@@ -110,7 +107,7 @@ def delete_existing_post(
     delete_post(db, db_post)
     return None
 
-# Toggle like/unlike on a post
+
 @router.post("/{post_id}/like")
 def like_or_unlike(
     post_id: int,
