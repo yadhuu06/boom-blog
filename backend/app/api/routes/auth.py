@@ -1,4 +1,4 @@
-# auth.py  
+ 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import timedelta
@@ -22,7 +22,7 @@ def login_or_register(request: LoginRequest, db: Session = Depends(get_db)):
         if not verify_password(request.password, user.hashed_password):
             raise HTTPException(status_code=400, detail="Invalid password")
     else:
-        # Register flow
+        
         user = create_user(db, UserCreate(email=request.email, password=request.password))
 
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)

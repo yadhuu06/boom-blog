@@ -31,18 +31,18 @@ def upload_to_cloudinary(file: UploadFile, folder: str = "Boom") -> str:
         HTTPException: If the file is invalid or upload fails
     """
     print("call camee------------------------------------------------")
-    # Validate file type
+    
     allowed_types = {"image/jpeg", "image/png", "image/gif"}
     if file.content_type not in allowed_types:
         raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG, PNG, and GIF are allowed.")
     
-    # Validate file size (e.g., max 5MB)
-    max_size = 5 * 1024 * 1024  # 5MB in bytes
+
+    max_size = 5 * 1024 * 1024 
     if file.size > max_size:
         raise HTTPException(status_code=400, detail="File size exceeds 5MB limit.")
     
     try:
-        # Upload the file to Cloudinary
+
         print("uploading-------------------------------")
         result = cloudinary.uploader.upload(
             file.file,

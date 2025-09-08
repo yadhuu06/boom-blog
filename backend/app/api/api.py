@@ -1,4 +1,3 @@
-# api.py
 from fastapi import APIRouter
 from app.api.routes import users, auth, admin, posts, comments 
 

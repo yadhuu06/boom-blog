@@ -2,7 +2,6 @@
 import os
 from pydantic_settings import BaseSettings
 
-# Define the path to .env file in project root
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
 

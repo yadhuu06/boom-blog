@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
@@ -14,6 +14,7 @@ class Post(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     author_id = Column(Integer, ForeignKey("boom_blog.users.id"))
+    is_active = Column(Boolean, default=True) 
     like_count = Column(Integer, default=0)
     view_count = Column(Integer, default=0)
     author = relationship("User", back_populates="posts")

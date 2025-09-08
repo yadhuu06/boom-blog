@@ -29,6 +29,7 @@ class PostResponse(PostBase):
     like_count: int 
     is_liked: Optional[bool] = None
     is_viewed: Optional[bool] = None
+    is_blocked: Optional[bool] = None
     author: UserResponse
 
     class Config:
