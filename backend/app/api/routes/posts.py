@@ -54,7 +54,7 @@ def read_all_posts(
 def read_post(
     post_id: int,
     db: Session = Depends(get_db),
-    user: Optional[User] = Depends(get_current_user, use_cache=False)  # Consistent typing
+    user: Optional[User] = Depends(get_current_user, use_cache=False)  
 ):
     db_post = get_post_by_id(db, post_id, user_id=user.id if user else None)
     if not db_post:

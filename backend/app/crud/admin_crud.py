@@ -12,11 +12,11 @@ def toggle_user_status(db: Session, user_id: int):
     db.refresh(user)
     return user
 
-def toggle_post_block(db: Session, post_id: int):
+def toggle_post_active(db: Session, post_id: int):  
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    post.is_blocked = not post.is_blocked
+    post.is_active = not post.is_active  
     db.commit()
     db.refresh(post)
     return post

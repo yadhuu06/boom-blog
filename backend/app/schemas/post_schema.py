@@ -9,17 +9,17 @@ class PostBase(BaseModel):
     content: str
     image_url: Optional[str] = None
 
-# Schema for creating a new post
+
 class PostCreate(PostBase):
     pass
 
-# Schema for updating a post
+
 class PostUpdate(BaseModel):
     title: Optional[str] = None
     content: Optional[str] = None
     image_url: Optional[str] = None
 
-# Schema for post response
+
 class PostResponse(PostBase):
     id: int
     author_id: int
@@ -29,7 +29,7 @@ class PostResponse(PostBase):
     like_count: int 
     is_liked: Optional[bool] = None
     is_viewed: Optional[bool] = None
-    is_blocked: Optional[bool] = None
+    is_active: Optional[bool] = None
     author: UserResponse
 
     class Config:
