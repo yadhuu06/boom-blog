@@ -1,20 +1,30 @@
 import api from "./api";
 
-export const addComment = async (postId, content) => {
+export const createComment = async (postId, content) => {
   const response = await api.post(`/comments/${postId}`, { content });
   return response.data;
 };
 
-export const getCommentsForPost = async (postId) => {
-  const response = await api.get(`/comments/${postId}`);
+export const getCommentsForPost = async (postId, skip = 0, limit = 5) => {
+  const response = await api.get(`/comments/${postId}?skip=${skip}&limit=${limit}`);
   return response.data;
 };
 
-export const updateComment = async (postId, commentId, content) => {
-  const response = await api.put(`/comments/${postId}/${commentId}`, { content });
+export const getAllCommentsAdmin = async (skip = 0, limit = 10) => {
+  const response = await api.get(`/admin/comments?skip=${skip}&limit=${limit}`);
   return response.data;
 };
 
-export const deleteComment = async (postId, commentId) => {
-  await api.delete(`/comments/${postId}/${commentId}`);
+export const updateComment = async (commentId, content) => {
+  const response = await api.put(`/comments/${commentId}`, { content });
+  return response.data;
+};
+
+export const deleteComment = async (commentId) => {
+  await api.delete(`/comments/${commentId}`);
+};
+
+export const toggleCommentApprove = async (commentId) => {
+  const response = await api.put(`/comments/${commentId}/approve`);
+  return response.data;
 };

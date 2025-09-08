@@ -1,21 +1,22 @@
-
 import api from "./api";
 
-// Create a new post with FormData
 export const createPost = async (formData) => {
-  const response = await api.post("/posts/", formData, {
+  const response = await api.post("/posts", formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
   return response.data;
 };
 
-// Get all posts
-export const getAllPosts = async () => {
-  const response = await api.get("/posts/");
+export const getAllPosts = async (skip = 0, limit = 6) => {
+  const response = await api.get(`/posts?skip=${skip}&limit=${limit}`);
   return response.data;
 };
 
-// Get a post by ID (increments view count on backend)
+export const getAllPostsAdmin = async (skip = 0, limit = 10) => {
+  const response = await api.get(`/admin/posts?skip=${skip}&limit=${limit}`);
+  return response.data;
+};
+
 export const getPostById = async (id, token) => {
   const response = await api.get(`/posts/${id}`, {
     headers: { Authorization: `Bearer ${token}` }
@@ -23,7 +24,6 @@ export const getPostById = async (id, token) => {
   return response.data;
 };
 
-// Update a post with FormData
 export const updatePost = async (id, formData, token) => {
   const response = await api.put(`/posts/${id}`, formData, {
     headers: { 
@@ -34,14 +34,17 @@ export const updatePost = async (id, formData, token) => {
   return response.data;
 };
 
-// Delete a post
 export const deletePost = async (id, token) => {
   await api.delete(`/posts/${id}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
 };
 
-// Toggle like/unlike
+export const togglePostActive = async (postId) => {
+  const response = await api.put(`/admin/posts/${postId}/toggle-active`);
+  return response.data;
+};
+
 export const toggleLike = async (id, token) => {
   const response = await api.post(`/posts/${id}/like`, {}, {
     headers: { Authorization: `Bearer ${token}` }

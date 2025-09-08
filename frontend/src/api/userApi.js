@@ -1,7 +1,7 @@
-import api from "./api";
+import api from './api';
 
-export const getAllUsers = async () => {
-  const response = await api.get("/users/");
+export const getAllUsers = async (skip = 0, limit = 10) => {
+  const response = await api.get(`/admin/users?skip=${skip}&limit=${limit}`);
   return response.data;
 };
 
@@ -16,6 +16,10 @@ export const updateUser = async (id, updates) => {
 };
 
 export const deleteUser = async (id) => {
-  const response = await api.delete(`/users/${id}`);
+  await api.delete(`/users/${id}`);
+};
+
+export const toggleUserActive = async (userId) => {
+  const response = await api.put(`/admin/users/${userId}/toggle-active`);
   return response.data;
 };
