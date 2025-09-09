@@ -2,6 +2,29 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.api import api_router
 from app.core.config import settings
+from app.db.database import Base, engine 
+
+import os
+from alembic.config import Config
+from alembic import command
+
+def run_migrations():
+    alembic_ini_path = os.path.join(os.path.dirname(__file__), "../alembic.ini")
+    if os.path.exists(alembic_ini_path):
+        try:
+            alembic_cfg = Config(alembic_ini_path)
+            command.upgrade(alembic_cfg, "head")
+            print("Alembic migrations applied successfully.")
+            return
+        except Exception as e:
+            print(f"Alembic migration failed: {e}. Falling back to create tables.")
+
+    Base.metadata.create_all(bind=engine)
+    print("Tables created using SQLAlchemy Base.metadata.create_all().")
+
+
+
+run_migrations()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
