@@ -2,30 +2,29 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.api import api_router
 from app.core.config import settings
-from app.db.database import Base, engine 
+from app.db.database import Base, engine
+from sqlalchemy import text
 
-import os
-from alembic.config import Config
-from alembic import command
+# ✅ Import all models so they register with Base
+from app.models import comment, like, post, user, view  
 
-def run_migrations():
-    alembic_ini_path = os.path.join(os.path.dirname(__file__), "../alembic.ini")
-    if os.path.exists(alembic_ini_path):
-        try:
-            alembic_cfg = Config(alembic_ini_path)
-            command.upgrade(alembic_cfg, "head")
-            print("Alembic migrations applied successfully.")
-            return
-        except Exception as e:
-            print(f"Alembic migration failed: {e}. Falling back to create tables.")
 
+def init_db():
+    """Ensure schema + tables exist."""
+    with engine.connect() as conn:
+        # Create schema if not exists
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS boom_blog"))
+        conn.commit()
+
+    # Create tables inside schema
     Base.metadata.create_all(bind=engine)
-    print("Tables created using SQLAlchemy Base.metadata.create_all().")
+    print("✅ Schema and tables ensured in database.")
 
 
+# Run DB initialization
+init_db()
 
-run_migrations()
-
+# FastAPI app
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
@@ -36,17 +35,16 @@ app = FastAPI(
 
 # CORS Middleware
 origins = [
-    "http://localhost:5173",  
-    "http://127.0.0.1:5173",  
-    "http://localhost:3000",  
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://boom-blog-frontend.onrender.com"
-    
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,6 +52,7 @@ app.add_middleware(
 
 # Include API Router
 app.include_router(api_router)
+
 
 @app.get("/", tags=["Root"])
 async def root():
