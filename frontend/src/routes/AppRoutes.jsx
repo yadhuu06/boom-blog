@@ -8,7 +8,7 @@ import PostDetailPage from '../features/users/pages/PostDetailPage';
 import CreatePostPage from '../features/users/pages/CreatePostPage';
 import EditPostPage from '../features/users/pages/EditPostPage';
 import UsersPage from '../features/users/pages/UsersPage';
-import AdminDashboard from '../features/users/pages/AdminDashboard';
+import AdminDashboard from '../features/admin/pages/AdminDashboard';
 
 const AppRoutes = () => {
   return (

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -21,11 +20,28 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+    let message = "Something went wrong";
+
+    if (error.response) {
+      
+      message =
+        error.response.data?.detail ||
+        error.response.data?.message ||
+        `Error ${error.response.status}: ${error.response.statusText}`;
+
+      if (error.response.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+    } else if (error.request) {
+      
+      message = "No response from server. Please try again.";
+    } else {
+      
+      message = error.message;
     }
-    return Promise.reject(error);
+
+    return Promise.reject(new Error(message));
   }
 );
 

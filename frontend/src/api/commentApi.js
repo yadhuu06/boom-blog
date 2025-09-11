@@ -1,3 +1,4 @@
+// commentService.js
 import api from "./api";
 
 export const createComment = async (postId, content) => {

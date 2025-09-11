@@ -1,4 +1,5 @@
-import api from './api';
+// userService.js
+import api from "./api";
 
 export const getAllUsers = async (skip = 0, limit = 10) => {
   const response = await api.get(`/admin/users?skip=${skip}&limit=${limit}`);
