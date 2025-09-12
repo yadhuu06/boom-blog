@@ -10,7 +10,7 @@ class PostBase(BaseModel):
     image_url: Optional[str] = None
 
 
-class PostCreate(PostBase):
+class PostCreate(PostBase): 
     pass
 
 

@@ -18,12 +18,31 @@ def get_all_posts(db: Session, skip: int = 0, limit: int = 6, is_admin: bool = F
         query = query.filter(Post.is_active == True)
     return query.offset(skip).limit(limit).all()
 
+from sqlalchemy.orm import Session
+from sqlalchemy import exists
+from app.models import Post, Like, View  # adjust import for your View table if you have one
+
 def get_post_by_id(db: Session, post_id: int, user_id: int = None):
-    post = db.query(Post).filter(Post.id == post_id).first()
-    if not post or not post.is_active:
+    post = db.query(Post).filter(Post.id == post_id, Post.is_active == True).first()
+    if not post:
         return None
+
+    is_liked = False
+    is_viewed = False
+
     if user_id:
+
         add_view(db, post_id, user_id)
+
+        is_liked = db.query(
+            exists().where(Like.post_id == post_id, Like.user_id == user_id)
+        ).scalar()
+        is_viewed = db.query(
+            exists().where(View.post_id == post_id, View.user_id == user_id)
+        ).scalar()
+
+    post.is_liked = is_liked
+    post.is_viewed = is_viewed
     return post
 
 def update_post(db: Session, db_post: Post, updates: PostUpdate) -> Post:
