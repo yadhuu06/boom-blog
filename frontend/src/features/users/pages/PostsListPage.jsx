@@ -22,7 +22,9 @@ const PostsListPage = () => {
     }
 
     const fetchPosts = async () => {
+      console.info(user)
       try {
+        
         toast.loading('Fetching posts...', { id: 'fetch-posts' });
         const data = await getAllPosts((page - 1) * postsPerPage, postsPerPage);
         setPosts(data.posts || []);

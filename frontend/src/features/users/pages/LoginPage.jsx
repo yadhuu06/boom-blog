@@ -8,6 +8,7 @@ import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const LoginPage = () => {
+  console.log("login page loaded")
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +37,7 @@ const LoginPage = () => {
       toast.loading('Signing you in...', { id: 'login' });
       const data = await register_or_login(email, password);
       if (data.access_token) {
-        dispatch(loginSuccess({ user: data.user, token: data.access_token }));
+        dispatch(loginSuccess({ user: data.user, accessToken: data.access_token }));
         toast.success('Welcome to Boom Blog!', { id: 'login' });
         navigate('/');
       }

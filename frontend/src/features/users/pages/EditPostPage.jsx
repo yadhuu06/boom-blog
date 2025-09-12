@@ -13,11 +13,13 @@ const EditPostPage = () => {
   const [initialValues, setInitialValues] = useState({});
 
   useEffect(() => {
+    console.info("the page edit triggered")
     const fetchPost = async () => {
       try {
+        console.error("trying to fetch post ")
         toast.loading("Fetching post...", { id: "post" });
         const post = await getPostById(id);
-        if (post.author_id !== user.id) {
+        if (post.author_id !== user.id && !user.is_admin) {
           toast.error("Not authorized.", { id: "post" });
           navigate(`/posts/${id}`);
           return;

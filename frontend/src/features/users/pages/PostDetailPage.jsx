@@ -18,7 +18,7 @@ const PostDetailPage = () => {
   const [showComments, setShowComments] = useState(false);
   const [commentPage, setCommentPage] = useState(1);
   const commentsPerPage = 5;
-  const { token, user } = useSelector((state) => state.auth);
+  const { accessToken, user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const isAdmin = user?.is_admin || false;
 
@@ -38,7 +38,7 @@ const PostDetailPage = () => {
           setComments(isAdmin ? commentsData.comments : commentsData.comments.filter(c => c.is_approved));
           setTotalComments(commentsData.total || 0);
 
-          if (token && postData) {
+          if (accessToken && postData) {
             const viewedPosts = JSON.parse(localStorage.getItem('viewedPosts')) || [];
             if (!viewedPosts.includes(id)) {
               localStorage.setItem('viewedPosts', JSON.stringify([...viewedPosts, id]));
@@ -55,15 +55,19 @@ const PostDetailPage = () => {
         navigate('/');
       }
     };
+    console.error(user)
+    if (accessToken){
+      console.info("access token is there")
+    }
 
     fetchData();
     return () => {
       isMounted = false;
     };
-  }, [id, token, isAdmin, navigate]);
+  }, [id, accessToken, isAdmin, navigate]);
 
   const handleLike = async () => {
-    if (!token) {
+    if (!accessToken) {
       toast.error('Please log in to like posts.');
       navigate('/login');
       return;
@@ -99,7 +103,7 @@ const PostDetailPage = () => {
 
   const handleAddComment = async (e) => {
     e.preventDefault();
-    if (!token) {
+    if (!accessToken) {
       toast.error('Please log in to comment.');
       navigate('/login');
       return;
@@ -457,7 +461,7 @@ const PostDetailPage = () => {
                     )}
                   </div>
                 )}
-                {token && user.is_active ? (
+                {accessToken && user.is_active ? (
                   <motion.form
                     onSubmit={handleAddComment}
                     initial={{ y: 20, opacity: 0 }}
@@ -486,7 +490,7 @@ const PostDetailPage = () => {
                   </motion.form>
                 ) : (
                   <p className="text-gray-400 text-center py-4">
-                    {token ? 'Your account is blocked.' : (
+                    {accessToken ? 'Your account is blocked.' : (
                       <Link to="/login" className="text-cyan-400 hover:underline">Log in</Link>
                     )} to comment.
                   </p>

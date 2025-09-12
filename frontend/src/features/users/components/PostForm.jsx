@@ -12,8 +12,9 @@ const PostForm = ({ initialValues = {}, onSubmit, submitLabel }) => {
   const [croppedImage, setCroppedImage] = useState(null);
   const imageRef = useRef(null);
 
-  // Only set initial values when they arrive
+
   useEffect(() => {
+    console.error("post form triggers")
     if (initialValues.title) setTitle(initialValues.title);
     if (initialValues.content) setContent(initialValues.content);
     if (initialValues.imageUrl) setImageSrc(initialValues.imageUrl);
