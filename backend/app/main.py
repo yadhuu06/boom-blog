@@ -5,26 +5,22 @@ from app.core.config import settings
 from app.db.database import Base, engine
 from sqlalchemy import text
 
-# ✅ Import all models so they register with Base
 from app.models import comment, like, post, user, view  
 
 
 def init_db():
     """Ensure schema + tables exist."""
     with engine.connect() as conn:
-        # Create schema if not exists
+       
         conn.execute(text("CREATE SCHEMA IF NOT EXISTS boom_blog"))
         conn.commit()
-
-    # Create tables inside schema
     Base.metadata.create_all(bind=engine)
-    print("✅ Schema and tables ensured in database.")
+    print(" Schema and tables ensured in database.")
 
 
-# Run DB initialization
 init_db()
 
-# FastAPI app
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version="1.0.0",
@@ -33,7 +29,7 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS Middleware
+
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -50,7 +46,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API Router
 app.include_router(api_router)
 
 

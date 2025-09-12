@@ -6,9 +6,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
 ENV_PATH = os.path.join(BASE_DIR, ".env")
 
 class Settings(BaseSettings):
-    """
-    Pydantic model to load and validate environment variables for the application.
-    """
+
     PROJECT_NAME: str = "Boom-Blog" 
     ENVIRONMENT: str = "development"
     DATABASE_URL: str  

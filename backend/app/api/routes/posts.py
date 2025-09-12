@@ -7,7 +7,7 @@ from app.crud.post_crud import create_post, get_post_by_id, get_all_posts, updat
 from app.db.database import get_db
 from app.api.dependencies import get_current_user
 from app.models.post import Post
-from app.models.user import User  # Import User model
+from app.models.user import User  
 from app.utils.cloudinary_service import upload_to_cloudinary
 
 router = APIRouter(tags=["Posts"])

@@ -61,9 +61,9 @@ def remove_comment(
         raise HTTPException(status_code=403, detail="Not allowed to delete this comment")
     return delete_comment(db, db_comment)
 
-@router.put("/{commentId}/approve", response_model=CommentResponse)  # Fixed typo
+@router.put("/{commentId}/approve", response_model=CommentResponse)  
 def approve_comment_route(
-    commentId: int,  # Fixed parameter name
+    commentId: int, 
     db: Session = Depends(get_db),
     user=Depends(get_current_user)
 ):
