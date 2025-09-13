@@ -18,25 +18,6 @@ It features JWT authentication, PostgreSQL database integration, Cloudinary for 
 
 ---
 
-## 📁 Project Structure
-
-Boom-Blog/
-├── backend/ # FastAPI backend
-│ ├── app/
-│ │ ├── api/ # API routes
-│ │ ├── core/ # Config & settings
-│ │ ├── db/ # Database setup & models
-│ │ ├── schemas/ # Pydantic models
-│ │ ├── crud/ # CRUD operations
-│ │ └── main.py # FastAPI app entry point
-│ └── alembic/ # Alembic migrations
-├── frontend/ # React frontend
-│ ├── src/
-│ └── package.json
-├── .env # Environment variables
-└── README.md
-
-makefile
 
 
 ---
