@@ -4,6 +4,7 @@ from app.models.view import View
 from app.models.like import Like
 from app.schemas.post_schema import PostCreate, PostUpdate
 from fastapi import HTTPException, status
+from sqlalchemy import exists
 
 def create_post(db: Session, post: PostCreate, author_id: int) -> Post:
     db_post = Post(**post.dict(), author_id=author_id, is_active=True)
@@ -17,10 +18,7 @@ def get_all_posts(db: Session, skip: int = 0, limit: int = 6, is_admin: bool = F
     if not is_admin:
         query = query.filter(Post.is_active == True)
     return query.offset(skip).limit(limit).all()
-
-from sqlalchemy.orm import Session
-from sqlalchemy import exists
-from app.models import Post, Like, View  # adjust import for your View table if you have one
+ 
 
 def get_post_by_id(db: Session, post_id: int, user_id: int = None):
     post = db.query(Post).filter(Post.id == post_id, Post.is_active == True).first()
