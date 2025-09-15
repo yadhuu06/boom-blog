@@ -22,4 +22,4 @@ uvloop==0.21.0
 watchfiles==0.24.0
 requests==2.32.3       
 urllib3==2.2.3         
-cloudinary==1.28.1
+cloudinary==1.44.1

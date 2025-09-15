@@ -5,7 +5,7 @@ from app.core.config import settings
 
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=True,
+    echo=False,
     connect_args={"options": f"-csearch_path={settings.DB_SCHEMA}"}
 )
 
